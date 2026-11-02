@@ -27,12 +27,7 @@ const ENTITY_TEMPLATES: Record<
     description: 'Client records including CAC/RC numbers, contact information and passport references.',
     headers: ['Full Name', 'Mobile Phone', 'Email', 'Passport Number', 'Nationality', 'Corporate RC Number'],
     sampleRow: {
-      'Full Name': 'Chief Olusegun Obasanjo',
-      'Mobile Phone': '0803 123 4567',
-      'Email': 'segun.o@bellotravels.ng',
-      'Passport Number': 'A09876543',
-      'Nationality': 'Nigerian',
-      'Corporate RC Number': 'RC-1049281',
+      'Full Name': 'Sample Client', 'Mobile Phone': '0800 000 0001', 'Email': 'client@example.com', 'Passport Number': 'A00000000', 'Nationality': 'Nigerian', 'Corporate RC Number': 'RC-000000',
     },
   },
   leads: {
@@ -40,12 +35,7 @@ const ENTITY_TEMPLATES: Record<
     description: 'Inquiries and marketing leads with acquisition channels, budget and destinations.',
     headers: ['Lead Name', 'Phone Number', 'Email', 'Channel Source', 'Destination', 'Budget Naira'],
     sampleRow: {
-      'Lead Name': 'Folake Coker',
-      'Phone Number': '0812 998 1122',
-      'Email': 'folake.c@tiffanyamber.ng',
-      'Channel Source': 'Instagram',
-      'Destination': 'Dubai & Maldives Package',
-      'Budget Naira': '₦3,500,000.00',
+      'Lead Name': 'Sample Lead', 'Phone Number': '0800 000 0002', 'Email': 'lead@example.com', 'Channel Source': 'Website', 'Destination': 'International Package', 'Budget Naira': '₦1,000,000.00',
     },
   },
   bookings: {
@@ -53,13 +43,7 @@ const ENTITY_TEMPLATES: Record<
     description: 'Historical bookings and travel ledger records (protected from current operational balances).',
     headers: ['Booking Ref', 'Client Name', 'Travel Date', 'Service Type', 'Total Selling Naira', 'Supplier Cost Naira', 'Payment Status'],
     sampleRow: {
-      'Booking Ref': 'BK-HIST-2025-089',
-      'Client Name': 'Alhaji Aliko Dangote',
-      'Travel Date': '15/12/2025',
-      'Service Type': 'First Class Flight (LOS-LHR)',
-      'Total Selling Naira': '₦8,400,000.00',
-      'Supplier Cost Naira': '₦7,650,000.00',
-      'Payment Status': 'Fully Paid',
+      'Booking Ref': 'BK-0000', 'Client Name': 'Sample Client', 'Travel Date': '01/01/2027', 'Service Type': 'Economy Flight', 'Total Selling Naira': '₦500,000.00', 'Supplier Cost Naira': '₦450,000.00', 'Payment Status': 'Fully Paid',
     },
   },
   suppliers: {
@@ -67,13 +51,7 @@ const ENTITY_TEMPLATES: Record<
     description: 'Airlines, hotel chains, and local consolidators with bank and settlement currency.',
     headers: ['Supplier Name', 'Supplier Type', 'Contact Person', 'Phone', 'Email', 'Payment Currency', 'Bank Details'],
     sampleRow: {
-      'Supplier Name': 'Qatar Airways Nigeria Ltd',
-      'Supplier Type': 'Airline',
-      'Contact Person': 'Adekunle Gold',
-      'Phone': '01 271 0000',
-      'Email': 'agencydesk.los@qatarairways.com.qa',
-      'Payment Currency': 'NGN',
-      'Bank Details': 'Zenith Bank - 1014829011',
+      'Supplier Name': 'Consolidator Partner', 'Supplier Type': 'Airline', 'Contact Person': 'Operations Desk', 'Phone': '01 000 0000', 'Email': 'agencydesk@partner.com', 'Payment Currency': 'NGN', 'Bank Details': 'Settlement Bank - 0000000000',
     },
   },
   staff: {
@@ -81,130 +59,16 @@ const ENTITY_TEMPLATES: Record<
     description: 'Workspace staff directory, initial roles, and branch assignment.',
     headers: ['Full Name', 'Official Email', 'Phone Number', 'Assigned Role', 'Branch Location'],
     sampleRow: {
-      'Full Name': 'Bisi Adeyemi',
-      'Official Email': 'bisi.adeyemi@skylinetravels.ng',
-      'Phone Number': '0809 555 1234',
-      'Assigned Role': 'Staff',
-      'Branch Location': 'Lagos Main Branch (Ikeja)',
+      'Full Name': 'Staff Member', 'Official Email': 'staff@agency.ng', 'Phone Number': '0800 000 0003', 'Assigned Role': 'Staff', 'Branch Location': 'Head Office',
     },
   },
 };
 
 // Seed In-Memory Batches
-let SEED_BATCHES: ImportBatchSummary[] = [
-  {
-    batchId: 'BATCH-20261102-01',
-    entityType: 'clients',
-    fileName: 'october_corporate_clients.xlsx',
-    totalRows: 42,
-    importedCount: 42,
-    skippedCount: 0,
-    duplicateRule: 'skip',
-    isOpeningBalance: false,
-    importedBy: 'Adaeze Okafor (Owner)',
-    importedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-    undoExpiresAt: new Date(Date.now() + 21 * 60 * 60 * 1000).toISOString(),
-    isUndone: false,
-    progressPercent: 100,
-    status: 'Completed',
-  },
-];
+let SEED_BATCHES: ImportBatchSummary[] = [];
 
 // Seed In-Memory Audit Logs (Rule 9 & 10)
-let SEED_AUDIT_LOGS: AuditLogEntry[] = [
-  {
-    id: 'AUD-8821',
-    timestamp: '2026-11-02T08:15:00.000Z',
-    person: {
-      userId: 'usr_adaeze',
-      name: 'Adaeze Okafor',
-      email: 'adaeze@skylinetravels.ng',
-    },
-    role: 'Owner',
-    device: {
-      browser: 'Chrome 128 / macOS',
-      os: 'macOS Sonoma',
-      deviceId: 'DEV-MBP-ADA-01',
-    },
-    address: {
-      ip: '102.89.44.12',
-      approximateLocation: 'Ikeja GRA, Lagos, Nigeria',
-    },
-    action: 'CREATE',
-    record: {
-      entityType: 'BOOKING',
-      reference: 'BK-2026-016',
-      linkUrl: '/bookings/BK-2026-016',
-    },
-    oldValue: null,
-    newValue: {
-      bookingRef: 'BK-2026-016',
-      client: 'Alhaji Aliko Dangote',
-      totalKobo: 840000000,
-      status: 'Confirmed',
-    },
-    reason: 'VIP Corporate Booking issued via GDS ticket desk',
-    retentionExpiresAt: '2033-11-02T08:15:00.000Z', // 7-year statutory lock
-  },
-  {
-    id: 'AUD-8820',
-    timestamp: '2026-11-02T07:45:12.000Z',
-    person: {
-      userId: 'usr_tunde',
-      name: 'Tunde Bakare',
-      email: 'tunde@skylinetravels.ng',
-    },
-    role: 'Operations manager',
-    device: {
-      browser: 'Firefox 130 / Windows 11',
-      os: 'Windows 11 Pro',
-      deviceId: 'DEV-WIN-TUNDE-02',
-    },
-    address: {
-      ip: '105.112.98.5',
-      approximateLocation: 'Victoria Island, Lagos, Nigeria',
-    },
-    action: 'APPROVAL',
-    record: {
-      entityType: 'APPROVAL',
-      reference: 'APP-EXP-089',
-      linkUrl: '/approvals',
-    },
-    oldValue: { status: 'Pending', approvedAmountKobo: 0 },
-    newValue: { status: 'Approved', approvedAmountKobo: 25000000 },
-    reason: 'Approved marketing collateral printing for November travel expo',
-    retentionExpiresAt: '2033-11-02T07:45:12.000Z',
-  },
-  {
-    id: 'AUD-8819',
-    timestamp: '2026-11-02T07:10:30.000Z',
-    person: {
-      userId: 'usr_bisi',
-      name: 'Bisi Adeyemi',
-      email: 'bisi@skylinetravels.ng',
-    },
-    role: 'Staff',
-    device: {
-      browser: 'Safari Mobile / iOS 18',
-      os: 'iOS 18.1',
-      deviceId: 'DEV-IPHONE-BISI-03',
-    },
-    address: {
-      ip: '102.89.44.12',
-      approximateLocation: 'Ikeja GRA, Lagos, Nigeria',
-    },
-    action: 'KYC_VIEW',
-    record: {
-      entityType: 'CLIENT',
-      reference: 'CL-101',
-      linkUrl: '/clients/CL-101',
-    },
-    oldValue: null,
-    newValue: { clientRef: 'CL-101', revealedField: 'passportNumber' },
-    reason: 'Audited reveal of passport number for Qatar Airways ticketing',
-    retentionExpiresAt: '2033-11-02T07:10:30.000Z',
-  },
-];
+let SEED_AUDIT_LOGS: AuditLogEntry[] = [];
 
 export async function registerDataAuditRoutes(app: FastifyInstance): Promise<void> {
   // 1. Get All 13 Specification Rules
@@ -493,7 +357,7 @@ export async function registerDataAuditRoutes(app: FastifyInstance): Promise<voi
         person: {
           userId: 'usr_op',
           name: req.body?.operatorName || 'Operator',
-          email: req.body?.operatorEmail || 'admin@skylinetravels.ng',
+          email: req.body?.operatorEmail || 'admin@agency.ng',
         },
         role: 'Owner',
         device: {
@@ -612,7 +476,7 @@ export async function registerDataAuditRoutes(app: FastifyInstance): Promise<voi
         person: {
           userId: 'usr_export',
           name: operatorName || 'System Operator',
-          email: operatorEmail || 'operator@skylinetravels.ng',
+          email: operatorEmail || 'operator@agency.ng',
         },
         role: 'Owner',
         device: {

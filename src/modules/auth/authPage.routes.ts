@@ -468,10 +468,10 @@ export async function registerAuthPageRoutes(app: FastifyInstance) {
 
     const invite = {
       token: body.token,
-      agencyName: 'Skyline Travels Nigeria Ltd',
-      inviterName: 'Adaeze Okafor (Owner)',
+      agencyName: 'Agency Workspace',
+      inviterName: 'Workspace Owner',
       role: 'TRAVEL_CONSULTANT',
-      invitedEmail: 'newstaff@skylinetravels.ng',
+      invitedEmail: 'staff@agency.ng',
       isExpired: Boolean(body.isExpired),
       isSingleUseRedeemed: false,
       isRevoked: Boolean(body.isRevoked),

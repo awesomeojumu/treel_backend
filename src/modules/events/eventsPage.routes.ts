@@ -17,209 +17,17 @@ import {
 } from '@/core/events/eventsPageRules';
 
 // Live in-memory store for events module
-let eventsStore: EventRecord[] = [
-  {
-    id: 'EVT-2026-001',
-    name: 'West Africa FinTech Summit & Gala 2026',
-    type: 'CONFERENCE',
-    dateTime: '2026-11-15T08:30:00+01:00',
-    endDateTime: '2026-11-15T22:00:00+01:00',
-    venue: 'Grand Ballroom, Eko Hotel & Suites, Victoria Island, Lagos',
-    expectedGuests: 150,
-    budgetKobo: 18_500_000_00,
-    ownerStaffId: 'usr_tunde',
-    ownerStaffName: 'Tunde Bakare',
-    status: 'CONFIRMED',
-    client: {
-      id: 'CLT-101',
-      name: 'Sterling Bank PLC',
-      phone: '+234 1 448 4400',
-      email: 'corporate.events@sterling.ng',
-      companyName: 'Sterling Bank PLC',
-    },
-    createdAt: '2026-09-01T08:00:00Z',
-  },
-  {
-    id: 'EVT-2026-002',
-    name: 'Hajj 2027 Orientation & Pilgrim Seminar',
-    type: 'SEMINAR',
-    dateTime: '2026-12-02T09:00:00+01:00',
-    endDateTime: '2026-12-02T16:00:00+01:00',
-    venue: 'Abuja International Conference Centre (AICC), Abuja',
-    expectedGuests: 120,
-    budgetKobo: 6_200_000_00,
-    ownerStaffId: 'usr_bisi',
-    ownerStaffName: 'Bisi Adeyemi',
-    status: 'PLANNING',
-    client: {
-      id: 'CLT-102',
-      name: 'National Hajj Commission Delegation',
-      phone: '+234 9 290 1234',
-      email: 'pilgrim.welfare@hajjcommission.gov.ng',
-    },
-    createdAt: '2026-09-15T08:00:00Z',
-  },
-];
+let eventsStore: EventRecord[] = [];
 
-let guestsStore: EventGuest[] = [
-  {
-    id: 'GST-001',
-    eventId: 'EVT-2026-001',
-    name: 'Dr. Patrick Utomi',
-    email: 'patrick@utomi.com',
-    phone: '+234 809 998 8776',
-    rsvpStatus: 'CONFIRMED',
-    tableNumber: 'Table 1 (VIP Front)',
-    plusOnesCount: 1,
-    dietaryNotes: 'Diabetic, low sodium',
-    qrCode: 'QR-EVT001-GST001',
-    checkedIn: true,
-    checkedInAt: '2026-11-15T08:15:00+01:00',
-    checkedInByStaff: 'Chinedu Eze',
-  },
-  {
-    id: 'GST-002',
-    eventId: 'EVT-2026-001',
-    name: 'Folake Ogunleye',
-    email: 'folake@firstbank.ng',
-    phone: '+234 802 444 8899',
-    rsvpStatus: 'CONFIRMED',
-    tableNumber: 'Table 2',
-    plusOnesCount: 0,
-    dietaryNotes: 'Halal / Vegetarian',
-    qrCode: 'QR-EVT001-GST002',
-    checkedIn: false,
-  },
-  {
-    id: 'GST-003',
-    eventId: 'EVT-2026-001',
-    name: 'Chief Raymond Adeleke',
-    email: 'raymond@adeleke-holdings.com',
-    phone: '+234 803 555 1234',
-    rsvpStatus: 'CONFIRMED',
-    tableNumber: 'Table 1 (VIP Front)',
-    plusOnesCount: 1,
-    dietaryNotes: 'None',
-    qrCode: 'QR-EVT001-GST003',
-    checkedIn: false,
-  },
-];
+let guestsStore: EventGuest[] = [];
 
-let vendorsStore: EventVendor[] = [
-  {
-    id: 'VND-001',
-    eventId: 'EVT-2026-001',
-    vendorName: 'Eko Hotels Grand Ballroom & Banquet',
-    contactPerson: 'Jude Okon',
-    phone: '+234 1 277 2700',
-    service: 'Hall Rental, 3-Course Banquet & Drinks',
-    quoteKobo: 8_500_000_00,
-    amountPaidKobo: 5_000_000_00,
-    balanceKobo: 3_500_000_00,
-    contractFileUrl: '/contracts/eko_ballroom_agreement.pdf',
-  },
-  {
-    id: 'VND-002',
-    eventId: 'EVT-2026-001',
-    vendorName: 'Megasound Audio-Visual Productions',
-    contactPerson: 'Emeka Nwosu',
-    phone: '+234 803 888 1212',
-    service: 'LED Screen Backdrop, Line Array Audio & Stage Lighting',
-    quoteKobo: 3_000_000_00,
-    amountPaidKobo: 2_000_000_00,
-    balanceKobo: 1_000_000_00,
-    contractFileUrl: '/contracts/megasound_stage_av.pdf',
-  },
-];
+let vendorsStore: EventVendor[] = [];
 
-let runSheetStore: RunSheetItem[] = [
-  {
-    id: 'RS-001',
-    eventId: 'EVT-2026-001',
-    time: '07:30',
-    title: 'AV Soundcheck & Stage LED Screen Calibration',
-    ownerStaffName: 'Chinedu Eze',
-    description: 'Verify roving mics, translation headsets, and presenter clickers',
-    status: 'COMPLETED',
-    isLate: false,
-  },
-  {
-    id: 'RS-002',
-    eventId: 'EVT-2026-001',
-    time: '08:30',
-    title: 'Delegate Registration & QR Badge Scanning Desk',
-    ownerStaffName: 'Bisi Adeyemi',
-    description: 'Fast-track QR scanning for pre-registered delegates at entrance',
-    status: 'IN_PROGRESS',
-    isLate: false,
-  },
-  {
-    id: 'RS-003',
-    eventId: 'EVT-2026-001',
-    time: '10:00',
-    title: 'Opening Keynote Address: Future of Banking in West Africa',
-    ownerStaffName: 'Tunde Bakare',
-    description: 'Escort Keynote Speaker Dr. Patrick Utomi to dais',
-    status: 'PENDING',
-    isLate: false,
-  },
-];
+let runSheetStore: RunSheetItem[] = [];
 
-let rosterStore: RosterItem[] = [
-  {
-    id: 'RST-001',
-    eventId: 'EVT-2026-001',
-    staffId: 'usr_tunde',
-    staffName: 'Tunde Bakare',
-    role: 'Lead Event Director & VIP Liaison',
-    shiftStart: '07:00',
-    shiftEnd: '22:30',
-    hasLeaveClash: false,
-  },
-  {
-    id: 'RST-002',
-    eventId: 'EVT-2026-001',
-    staffId: 'usr_bisi',
-    staffName: 'Bisi Adeyemi',
-    role: 'Head of Registration & QR Check-in',
-    shiftStart: '07:30',
-    shiftEnd: '17:00',
-    hasLeaveClash: false,
-  },
-  {
-    id: 'RST-003',
-    eventId: 'EVT-2026-001',
-    staffId: 'usr_chinedu',
-    staffName: 'Chinedu Eze',
-    role: 'AV Technician & Floor Coordinator',
-    shiftStart: '06:30',
-    shiftEnd: '22:30',
-    hasLeaveClash: false,
-  },
-];
+let rosterStore: RosterItem[] = [];
 
-let expensesStore: EventExpenseItem[] = [
-  {
-    id: 'EXP-001',
-    eventId: 'EVT-2026-001',
-    category: 'Printing & Badges',
-    description: 'Custom RFID delegate lanyards and conference agenda booklets',
-    budgetKobo: 600_000_00,
-    actualKobo: 550_000_00,
-    isOverBudget: false,
-    linkedFinanceTransactionId: 'PAY-2026-092',
-  },
-  {
-    id: 'EXP-002',
-    eventId: 'EVT-2026-001',
-    category: 'VIP Protocol Shuttle',
-    description: 'Executive Mercedes Sprinter airport transfers for keynote speakers',
-    budgetKobo: 500_000_00,
-    actualKobo: 720_000_00, // Overbudget by ₦220,000!
-    isOverBudget: true,
-    linkedFinanceTransactionId: 'PAY-2026-095',
-  },
-];
+let expensesStore: EventExpenseItem[] = [];
 
 export const registerEventsPageRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
   /**
@@ -418,48 +226,16 @@ export const registerEventsPageRoutes: FastifyPluginAsync = async (app: FastifyI
    * GET /api/v1/events/calendar
    */
   app.get('/api/v1/events/calendar', async (_request, reply) => {
-    const items: CalendarItem[] = [
-      {
-        id: 'EVT-2026-001',
-        type: 'EVENT',
-        title: 'West Africa FinTech Summit & Gala',
-        date: '2026-11-15',
-        time: '08:30 WAT',
-        color: '#0B1E3D', // Design Token: Brand Navy
-        label: 'Event: Conference',
-        venueOrRoute: 'Eko Hotel & Suites, Lagos',
-      },
-      {
-        id: 'EVT-2026-002',
-        type: 'EVENT',
-        title: 'Hajj 2027 Orientation Seminar',
-        date: '2026-12-02',
-        time: '09:00 WAT',
-        color: '#0B1E3D',
-        label: 'Event: Seminar',
-        venueOrRoute: 'AICC Abuja',
-      },
-      {
-        id: 'DEP-2026-UMRAH',
-        type: 'DEPARTURE',
-        title: 'December Umrah Platinum Group (32 Pilgrims)',
-        date: '2026-12-12',
-        time: '06:30 WAT',
-        color: '#C9A84C', // Design Token: Gold Accent
-        label: 'Group Departure: Tour',
-        venueOrRoute: 'LOS -> JED (EgyptAir MS876)',
-      },
-      {
-        id: 'DEP-2026-QATAR',
-        type: 'DEPARTURE',
-        title: 'Qatar Doha Luxury Experience Group (22 Pax)',
-        date: '2026-11-28',
-        time: '11:00 WAT',
-        color: '#C9A84C',
-        label: 'Group Departure: Tour',
-        venueOrRoute: 'LOS -> DOH (Qatar Airways QR1408)',
-      },
-    ];
+    const items: CalendarItem[] = eventsStore.map((e) => ({
+      id: e.id,
+      type: 'EVENT',
+      title: e.name,
+      date: e.dateTime ? e.dateTime.split('T')[0] : '2026-11-02',
+      time: '09:00 WAT',
+      color: '#0B1E3D',
+      label: 'Event',
+      venueOrRoute: e.venue,
+    }));
 
     return reply.send({
       success: true,

@@ -15,76 +15,9 @@ import {
 } from '@/core/reports/reportsPageRules';
 
 // In-Memory Seed Storage for Multi-Tenant Reports Sandbox
-let SEED_SCHEDULED_JOBS: ScheduledReportJob[] = [
-  {
-    id: 'SCHED-RPT-01',
-    reportId: 'RPT-01',
-    reportName: 'Sales by Staff',
-    frequency: 'weekly',
-    dispatchDay: 'Monday',
-    dispatchTimeWat: '08:00',
-    recipients: ['finance@skylinetravels.ng', 'owner@skylinetravels.ng'],
-    format: 'xlsx',
-    isPaused: false,
-    lastRunStatus: 'Success',
-    lastRunAt: '2026-10-26T07:00:00Z',
-    retryCount: 0,
-  },
-  {
-    id: 'SCHED-RPT-06',
-    reportId: 'RPT-06',
-    reportName: 'Supplier Payables',
-    frequency: 'monthly',
-    dispatchDay: '1st of Month',
-    dispatchTimeWat: '09:00',
-    recipients: ['finance@skylinetravels.ng'],
-    format: 'pdf',
-    isPaused: false,
-    lastRunStatus: 'Success',
-    lastRunAt: '2026-10-01T08:00:00Z',
-    retryCount: 0,
-  },
-  {
-    id: 'SCHED-RPT-05',
-    reportId: 'RPT-05',
-    reportName: 'Outstanding Receivables by Age',
-    frequency: 'weekly',
-    dispatchDay: 'Friday',
-    dispatchTimeWat: '16:00',
-    recipients: ['credit-control@skylinetravels.ng'],
-    format: 'xlsx',
-    isPaused: true,
-    lastRunStatus: 'Pending',
-    retryCount: 0,
-  },
-];
+let SEED_SCHEDULED_JOBS: ScheduledReportJob[] = [];
 
-let SEED_SNAPSHOTS: ReportSnapshotRecord[] = [
-  {
-    id: 'SNAP-RPT-01-202609',
-    reportId: 'RPT-01',
-    reportName: 'Sales by Staff',
-    periodLabel: 'September 2026',
-    totalKobo: 2845000000, // ₦28,450,000.00
-    recordsCount: 78,
-    savedBy: 'ayobami@skylinetravels.ng',
-    savedAt: '2026-10-01T09:30:00Z',
-    isLocked: true,
-    retroactiveNotes: 'Audited & locked for Q3 management commission payout.',
-  },
-  {
-    id: 'SNAP-RPT-09-202609',
-    reportId: 'RPT-09',
-    reportName: 'Expenses by Category',
-    periodLabel: 'September 2026',
-    totalKobo: 412000000, // ₦4,120,000.00
-    recordsCount: 31,
-    savedBy: 'finance@skylinetravels.ng',
-    savedAt: '2026-10-01T10:15:00Z',
-    isLocked: true,
-    retroactiveNotes: 'Includes generator diesel reconciliation for Ikeja HQ.',
-  },
-];
+let SEED_SNAPSHOTS: ReportSnapshotRecord[] = [];
 
 // Helper to generate deterministic report dataset
 function generateReportData(

@@ -45,7 +45,8 @@ export async function seedLiveDatabase(
   const agencyName = customAgencyName || 'Agency Workspace';
   const ownerName = customOwnerName || 'Agency Owner';
   const ownerEmail = (customOwnerEmail || 'owner@agency.ng').toLowerCase();
-  const defaultPasswordHash = await argon2.hash('Password123!');
+  const initialPassword = process.env.INITIAL_OWNER_PASSWORD || `${Math.random().toString(36).slice(2, 10)}!Tr9`;
+  const defaultPasswordHash = await argon2.hash(initialPassword);
 
   // 1. Seed Organization
   await OrganizationModel.deleteMany({ organizationId });
