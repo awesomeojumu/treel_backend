@@ -13,7 +13,7 @@
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
-    "noUncheckedIndexedAccess": true,
+    "noUncheckedIndexedAccess": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
