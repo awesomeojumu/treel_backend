@@ -406,28 +406,7 @@ export async function registerAuthPageRoutes(app: FastifyInstance) {
       };
     }
 
-    // Known test credentials check
-    const isOwner = email === 'owner@skylinetravels.ng' && body.password === 'Password123!';
-    const isStaffTunde = email === 'tunde@skylinetravels.ng' && body.password === 'Password123!';
-    const isStaffBisi = email === 'bisi@skylinetravels.ng' && body.password === 'Password123!';
-
-    if (isOwner || isStaffTunde || isStaffBisi) {
-      loginEngine.clearLockout(email);
-      return {
-        success: true,
-        isLocked: false,
-        isEmailConfirmed: true,
-        isWorkspaceSuspended: false,
-        requiresTwoFactor: false,
-        requiresWorkspaceSelection: false,
-        sessionToken: `jwt_${Buffer.from(email).toString('base64')}_${Date.now()}`,
-        user: {
-          email,
-          role: isOwner ? 'OWNER' : isStaffTunde ? 'OPERATIONS_MANAGER' : 'SALES_AGENT',
-          name: isOwner ? 'Adaeze Okafor' : isStaffTunde ? 'Tunde Bakare' : 'Bisi Adeyemi',
-        },
-      };
-    }
+    // Verified database authentication only - zero hardcoded credentials
 
     // Live Database User Authentication
     try {
