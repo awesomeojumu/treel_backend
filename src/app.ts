@@ -45,6 +45,7 @@ import { registerGroupTravelPageRoutes } from '@/modules/groupTravel/groupTravel
 import { registerEventsPageRoutes } from '@/modules/events/eventsPage.routes';
 import { registerDocumentsPageRoutes } from '@/modules/documents/documentsPage.routes';
 import { registerWorkspaceSettingsRoutes } from '@/modules/settings/workspaceSettings.routes';
+import { registerReportsPageRoutes } from '@/modules/reports/reportsPage.routes';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -114,6 +115,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await registerEventsPageRoutes(app);
   await registerDocumentsPageRoutes(app);
   await registerWorkspaceSettingsRoutes(app);
+  await registerReportsPageRoutes(app);
 
   return app;
 }
