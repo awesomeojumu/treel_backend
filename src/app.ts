@@ -26,6 +26,7 @@ import { registerTestingQualityRoutes } from '@/modules/platform/testingQualityR
 import { registerAuthPageRoutes } from '@/modules/auth/authPage.routes';
 import { registerSetupPageRoutes } from '@/modules/setup/setupPage.routes';
 import { registerAccountPageRoutes } from '@/modules/account/accountPage.routes';
+import { registerBillingPageRoutes } from '@/modules/billing/billingPage.routes';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -76,6 +77,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await registerAuthPageRoutes(app);
   await registerSetupPageRoutes(app);
   await registerAccountPageRoutes(app);
+  await registerBillingPageRoutes(app);
 
   return app;
 }
