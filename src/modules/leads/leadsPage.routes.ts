@@ -19,154 +19,7 @@ import {
 } from '@/core/leads/leadsPageRules';
 
 // In-memory seed database for Leads
-const INITIAL_LEADS: LeadRecord[] = [
-  {
-    id: 'LD-2026-0001',
-    organizationId: 'org-lagos-01',
-    clientName: 'Michael Okon',
-    phone: '+234 803 111 2222',
-    email: 'michael.okon@totalenergies.com',
-    serviceType: 'package',
-    destination: 'Kigali, Rwanda',
-    travelDates: {
-      type: 'exact',
-      dateSummary: '18 - 22 Nov 2026',
-      startDate: '2026-11-18',
-      endDate: '2026-11-22',
-    },
-    travellersCount: 4,
-    budgetKobo: 3_800_000_00,
-    source: 'Corporate Contract',
-    ownerStaffId: 'usr_bisi',
-    ownerStaffName: 'Bisi Adeyemi',
-    branchId: 'br-vi',
-    branchName: 'Victoria Island Head Office',
-    stage: 'negotiating',
-    nextFollowUpDate: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(), // Today
-    notes: ['Executive corporate retreat for TotalEnergies procurement team.'],
-    linkedClientId: 'CL-2026-0001',
-    linkedQuoteId: 'QUO-2026-0012',
-    createdAt: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    lastActivityAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    activityLogs: [
-      {
-        id: 'ACT-01',
-        leadId: 'LD-2026-0001',
-        type: 'stage_change',
-        description: 'Stage moved from "Quoted" to "Negotiating" by Bisi Adeyemi',
-        staffId: 'usr_bisi',
-        staffName: 'Bisi Adeyemi',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      },
-    ],
-  },
-  {
-    id: 'LD-2026-0002',
-    organizationId: 'org-lagos-01',
-    clientName: 'Alhaji Ibrahim Abdullahi',
-    phone: '0803 123 4567',
-    email: 'ibrahim.abdullahi@kano.ng',
-    serviceType: 'flight',
-    destination: 'Jeddah / Medina, Saudi Arabia',
-    travelDates: {
-      type: 'rough',
-      dateSummary: 'December 2026 Festive Season',
-    },
-    travellersCount: 5,
-    budgetKobo: 4_500_000_00,
-    source: 'Referral',
-    ownerStaffId: 'usr_bisi',
-    ownerStaffName: 'Bisi Adeyemi',
-    branchId: 'br-ikeja',
-    branchName: 'Ikeja Branch',
-    stage: 'quoted',
-    nextFollowUpDate: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // Overdue!
-    notes: ['Requires Emirates Business Class tickets for himself and wife, Economy for 3 children.'],
-    linkedClientId: 'CL-2026-0002',
-    linkedQuoteId: 'QUO-2026-0018',
-    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-    lastActivityAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-    activityLogs: [],
-  },
-  {
-    id: 'LD-2026-0003',
-    organizationId: 'org-lagos-01',
-    clientName: 'Folake Martins',
-    phone: '0802 222 3333',
-    email: 'folake.martins@yahoo.com',
-    serviceType: 'visa',
-    destination: 'United Kingdom',
-    travelDates: {
-      type: 'rough',
-      dateSummary: 'Easter 2027',
-    },
-    travellersCount: 1,
-    budgetKobo: 850_000_00,
-    source: 'Website Lead',
-    ownerStaffId: 'usr_tunde',
-    ownerStaffName: 'Tunde Bakare',
-    branchId: 'br-ikeja',
-    branchName: 'Ikeja Branch',
-    stage: 'contacted',
-    nextFollowUpDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Upcoming tomorrow
-    notes: ['Standard visitor visa renewal application with document verification.'],
-    createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-    lastActivityAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-    activityLogs: [],
-  },
-  {
-    id: 'LD-2026-0004',
-    organizationId: 'org-lagos-01',
-    clientName: 'Chief Emeka Eze',
-    phone: '0809 555 1212',
-    serviceType: 'flight',
-    destination: 'London Gatwick',
-    travelDates: {
-      type: 'rough',
-      dateSummary: 'Next week',
-    },
-    travellersCount: 1,
-    budgetKobo: 1_200_000_00,
-    source: 'WhatsApp Inbound',
-    ownerStaffId: 'usr_tunde',
-    ownerStaffName: 'Tunde Bakare',
-    branchId: 'br-ikeja',
-    branchName: 'Ikeja Branch',
-    stage: 'new',
-    notes: ['Inbound WhatsApp chat enquiry for Air Peace direct flight.'],
-    createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-    lastActivityAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-    activityLogs: [],
-  },
-  {
-    id: 'LD-2026-0005',
-    organizationId: 'org-lagos-01',
-    clientName: 'Zenith Oil Consortium',
-    phone: '0802 000 9999',
-    serviceType: 'other',
-    destination: 'Aberdeen, Scotland',
-    travelDates: { type: 'rough', dateSummary: 'Q1 2027' },
-    travellersCount: 10,
-    budgetKobo: 12_000_000_00,
-    source: 'Other',
-    sourceNote: 'Board member direct referral from Managing Director',
-    ownerStaffId: 'usr_bisi',
-    ownerStaffName: 'Bisi Adeyemi',
-    branchId: 'br-vi',
-    branchName: 'Victoria Island Head Office',
-    stage: 'lost',
-    lostReason: 'Client postponed overseas technical summit to late 2027',
-    notes: [],
-    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-    lastActivityAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(), // >3 days inactive!
-    activityLogs: [],
-  },
-];
+const INITIAL_LEADS: LeadRecord[] = [];
 
 let inMemoryLeads: LeadRecord[] = [...INITIAL_LEADS];
 let inMemoryStages: PipelineStageConfig[] = [...DEFAULT_PIPELINE_STAGES];
@@ -323,11 +176,7 @@ export async function registerLeadsPageRoutes(app: FastifyInstance) {
     Body: { phone: string };
   }>('/api/v1/leads/pre-match', async (req) => {
     const { phone } = req.body;
-    const clientSamples = [
-      { id: 'CL-2026-0001', name: 'Dr. Michael Okon', phone: '+234 803 111 2222' },
-      { id: 'CL-2026-0002', name: 'Alhaji Ibrahim Abdullahi', phone: '0803 123 4567' },
-      { id: 'CL-2026-0003', name: 'Mrs. Folake Martins', phone: '0802 222 3333' },
-    ];
+    const clientSamples: any[] = [];
     const match = checkExistingClientOrLead(phone, clientSamples, inMemoryLeads);
     return match;
   });
@@ -439,10 +288,7 @@ export async function registerLeadsPageRoutes(app: FastifyInstance) {
       return reply.status(404).send({ error: 'Lead not found' });
     }
 
-    const clientSamples = [
-      { id: 'CL-2026-0001', name: 'Dr. Michael Okon', phone: '+234 803 111 2222' },
-      { id: 'CL-2026-0002', name: 'Alhaji Ibrahim Abdullahi', phone: '0803 123 4567' },
-    ];
+    const clientSamples: any[] = [];
 
     const result = convertLeadToQuote(lead, clientSamples, staffId, staffName);
     const index = inMemoryLeads.findIndex((l) => l.id === id);

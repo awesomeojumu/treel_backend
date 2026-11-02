@@ -559,7 +559,7 @@ export async function registerDocumentsPageRoutes(app: FastifyInstance): Promise
 
     const defaultSample = {
       client_name: 'Dr. Alabi Williams',
-      client_email: 'a.williams@zenithgroup.ng',
+      client_email: 'client@example.com',
       client_phone: '+234 803 111 2233',
       amount: '3,850,000',
       currency: 'NGN',

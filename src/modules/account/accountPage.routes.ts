@@ -139,7 +139,7 @@ export async function registerAccountPageRoutes(app: FastifyInstance) {
     const archive = generatePersonalDataArchive({
       userId: 'usr_staff_current',
       name: 'Adaeze Okafor',
-      email: 'owner@skylinetravels.ng',
+      email: 'owner@agency.ng',
       role: 'OWNER',
       phone: '+234 803 123 4567',
       createdAt: '2026-01-01T00:00:00.000Z',

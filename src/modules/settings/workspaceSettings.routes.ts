@@ -29,7 +29,7 @@ let SEED_ORGANISATION: OrganisationProfile = {
   rcNumber: 'RC-1489201',
   address: '42 Isaac John Street, Ikeja GRA, Lagos, Nigeria',
   phone: '+234 1 270 5500',
-  email: 'info@skylinetravels.ng',
+  email: 'info@agency.ng',
   logoUrl: 'https://cdn.travelreel.ng/skyline/logo.png',
   vatNumber: 'TIN-09283741-0001',
   bankDetails: {
