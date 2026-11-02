@@ -46,6 +46,7 @@ import { registerEventsPageRoutes } from '@/modules/events/eventsPage.routes';
 import { registerDocumentsPageRoutes } from '@/modules/documents/documentsPage.routes';
 import { registerWorkspaceSettingsRoutes } from '@/modules/settings/workspaceSettings.routes';
 import { registerReportsPageRoutes } from '@/modules/reports/reportsPage.routes';
+import { registerDataAuditRoutes } from '@/modules/dataAudit/dataAudit.routes';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -116,6 +117,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await registerDocumentsPageRoutes(app);
   await registerWorkspaceSettingsRoutes(app);
   await registerReportsPageRoutes(app);
+  await registerDataAuditRoutes(app);
 
   return app;
 }
