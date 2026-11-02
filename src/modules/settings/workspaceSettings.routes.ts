@@ -11,6 +11,8 @@ import {
   OrganisationProfile,
   BranchRecord,
   WorkspaceRole,
+  WorkspacePageKey,
+  PermissionAction,
   ApprovalRule,
   WorkingHoursRule,
   CustomFieldDefinition,
