@@ -197,12 +197,19 @@ export async function registerAuthPageRoutes(app: FastifyInstance) {
       console.warn('Confirmation code email dispatch note:', mailErr.message);
     }
 
+    const sessionToken = `jwt_${Buffer.from(email).toString('base64')}_${Date.now()}`;
     return reply.status(201).send({
       success: true,
       email,
       agencyName,
-      requiresCodeVerification: true,
-      message: 'Confirmation code sent to your email.',
+      sessionToken,
+      user: {
+        email,
+        role: 'OWNER',
+        name: fullName,
+        organizationId,
+      },
+      message: 'Agency workspace created successfully! Confirmation code dispatched.',
     });
   });
 
