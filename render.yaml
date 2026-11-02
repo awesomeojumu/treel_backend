@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: treel-backend
+    runtime: node
+    plan: starter
+    region: frankfurt
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: HOST
+        value: 0.0.0.0
+      - key: MONGODB_URI
+        value: mongodb+srv://treelApp:gViIDKL8WRLnxmRr@planexi.b36hqe0.mongodb.net/Treel?retryWrites=true&w=majority
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: "*"
