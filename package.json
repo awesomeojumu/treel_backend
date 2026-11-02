@@ -11,6 +11,7 @@
     "test": "jest --runInBand",
     "db:seed": "tsx src/scripts/seed.ts",
     "db:clean": "tsx src/scripts/cleanDb.ts",
+    "db:delete-users": "tsx src/scripts/deleteUsers.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
