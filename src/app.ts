@@ -34,6 +34,7 @@ import { registerInboxPageRoutes } from '@/modules/inbox/inboxPage.routes';
 import { registerClientsPageRoutes } from '@/modules/clients/clientsPage.routes';
 import { registerLeadsPageRoutes } from '@/modules/leads/leadsPage.routes';
 import { registerQuotesInvoicesPageRoutes } from '@/modules/quotes/quotesInvoicesPage.routes';
+import { registerBookingsPageRoutes } from '@/modules/bookings/bookingsPage.routes';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -92,6 +93,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await registerClientsPageRoutes(app);
   await registerLeadsPageRoutes(app);
   await registerQuotesInvoicesPageRoutes(app);
+  await registerBookingsPageRoutes(app);
 
   return app;
 }
