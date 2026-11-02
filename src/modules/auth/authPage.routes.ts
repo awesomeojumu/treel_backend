@@ -12,6 +12,18 @@ import {
   verifyTotpCode,
 } from '@/core/auth/authPageRules';
 
+interface PendingConfirmation {
+  code: string;
+  email: string;
+  fullName: string;
+  agencyName: string;
+  organizationId: string;
+  userId: string;
+  expiresAt: number;
+  attempts: number;
+}
+const activeConfirmationCodes = new Map<string, PendingConfirmation>();
+
 export async function registerAuthPageRoutes(app: FastifyInstance) {
   const loginEngine = new AuthLoginEngine();
   const confirmationLimiter = new EmailConfirmationRateLimiter();
@@ -34,7 +46,7 @@ export async function registerAuthPageRoutes(app: FastifyInstance) {
     return evaluatePasswordStrength(password);
   });
 
-  // 3b. Agency Workspace Sign Up & Atomic Registration
+  // 3b. Agency Workspace Sign Up with 6-Digit Confirmation Code
   app.post('/api/v1/auth/signup', async (req: FastifyRequest, reply: FastifyReply) => {
     const body = req.body as {
       fullName?: string;
@@ -76,7 +88,7 @@ export async function registerAuthPageRoutes(app: FastifyInstance) {
         });
       }
     } catch {
-      // In-memory or resilient mode
+      // Resilient mode
     }
 
     const initials = fullName
@@ -126,38 +138,54 @@ export async function registerAuthPageRoutes(app: FastifyInstance) {
       console.warn('MongoDB signup write note:', dbErr.message);
     }
 
-    // 3. Send welcome confirmation email via Resend
+    // 3. Generate 6-Digit Confirmation Code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    activeConfirmationCodes.set(email, {
+      code,
+      email,
+      fullName,
+      agencyName,
+      organizationId,
+      userId,
+      expiresAt: Date.now() + 15 * 60 * 1000,
+      attempts: 0,
+    });
+
+    // 4. Dispatch Email with prominent 6-digit confirmation code via Resend
     try {
       await TransactionalEmailService.send({
         to: email,
-        subject: `Welcome to TravelReel – Workspace Created (${agencyName})`,
+        subject: `Your TravelReel Confirmation Code: ${code} (${agencyName})`,
         category: 'INVITE',
         htmlContent: `
-          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 28px; color: #1e293b; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px;">
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; color: #1e293b; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px;">
             <div style="text-align: center; margin-bottom: 24px;">
-              <div style="display: inline-block; background-color: #0B1E3D; color: #C9A84C; font-weight: 900; font-size: 22px; width: 48px; height: 48px; line-height: 48px; border-radius: 10px; text-align: center;">
+              <div style="display: inline-block; background-color: #0B1E3D; color: #C9A84C; font-weight: 900; font-size: 22px; width: 50px; height: 50px; line-height: 50px; border-radius: 12px; text-align: center;">
                 TR
               </div>
-              <h1 style="color: #0B1E3D; font-size: 20px; font-weight: 700; margin-top: 12px; margin-bottom: 4px;">
-                Welcome to TravelReel
+              <h1 style="color: #0B1E3D; font-size: 20px; font-weight: 700; margin: 16px 0 4px 0;">
+                Confirm your TravelReel Workspace
               </h1>
               <p style="color: #64748b; font-size: 13px; margin: 0;">Planexi SaaS for Nigerian Travel Agencies</p>
             </div>
-            
-            <p style="font-size: 14px; line-height: 1.6;">Hello <strong>${fullName}</strong>,</p>
-            <p style="font-size: 14px; line-height: 1.6;">
-              Your new agency workspace <strong>${agencyName}</strong> has been successfully provisioned on TravelReel with a 14-day free trial.
+
+            <p style="font-size: 14px; line-height: 1.6; margin-bottom: 8px;">Hello <strong>${fullName}</strong>,</p>
+            <p style="font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+              Thank you for registering <strong>${agencyName}</strong> on TravelReel. Enter this 6-digit confirmation code in your browser to activate your workspace:
             </p>
-            <p style="font-size: 14px; line-height: 1.6;">
-              You can sign in with your email address: <strong style="color: #0B1E3D;">${email}</strong>
-            </p>
-            
-            <div style="margin: 28px 0; text-align: center;">
-              <a href="http://localhost:3000/auth" style="background-color: #0B1E3D; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; display: inline-block;">
-                Sign in to your workspace &rarr;
-              </a>
+
+            <div style="background-color: #f8fafc; border: 2px dashed #0B1E3D; border-radius: 12px; padding: 20px; text-align: center; margin: 24px 0;">
+              <div style="font-size: 40px; font-weight: 800; letter-spacing: 10px; color: #0B1E3D; font-family: monospace;">
+                ${code}
+              </div>
+              <div style="font-size: 12px; color: #64748b; margin-top: 8px;">
+                Valid for 15 minutes. Never share this code with anyone.
+              </div>
             </div>
-            
+
+            <p style="font-size: 13px; color: #64748b; line-height: 1.5;">
+              If you didn't create an account on TravelReel, please ignore this email.
+            </p>
             <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
             <p style="font-size: 12px; color: #94a3b8; text-align: center; margin: 0;">
               TravelReel, a Planexi product &bull; Lagos, Nigeria
@@ -166,17 +194,169 @@ export async function registerAuthPageRoutes(app: FastifyInstance) {
         `,
       });
     } catch (mailErr: any) {
-      console.warn('Welcome email dispatch note:', mailErr.message);
+      console.warn('Confirmation code email dispatch note:', mailErr.message);
     }
 
     return reply.status(201).send({
       success: true,
       email,
       agencyName,
-      plan: 'Free Trial (14 days)',
-      message: 'Workspace created successfully. Welcome email sent.',
+      requiresCodeVerification: true,
+      message: 'Confirmation code sent to your email.',
     });
   });
+
+  // 3c. Verify 6-Digit Confirmation Code
+  app.post('/api/v1/auth/verify-confirmation-code', async (req: FastifyRequest, reply: FastifyReply) => {
+    const body = req.body as { email?: string; code?: string };
+    const email = (body.email || '').trim().toLowerCase();
+    const code = (body.code || '').trim();
+
+    if (!email || !code) {
+      return reply.status(400).send({
+        error: 'Validation error',
+        message: 'Email and 6-digit confirmation code are required.',
+      });
+    }
+
+    const pending = activeConfirmationCodes.get(email);
+    if (!pending) {
+      const dbUser = await UserModel.findOne({ email });
+      if (dbUser) {
+        return reply.send({
+          success: true,
+          verified: true,
+          message: 'Workspace already active.',
+          sessionToken: `jwt_${Buffer.from(email).toString('base64')}_${Date.now()}`,
+          user: {
+            email: dbUser.email,
+            role: dbUser.roleKey,
+            name: dbUser.name,
+            organizationId: dbUser.organizationId,
+          },
+        });
+      }
+      return reply.status(400).send({
+        error: 'Invalid request',
+        message: 'No pending confirmation found. Please request a new code or sign in.',
+      });
+    }
+
+    if (Date.now() > pending.expiresAt) {
+      activeConfirmationCodes.delete(email);
+      return reply.status(400).send({
+        error: 'Code expired',
+        message: 'Confirmation code has expired. Please request a new code.',
+      });
+    }
+
+    if (pending.attempts >= 5) {
+      activeConfirmationCodes.delete(email);
+      return reply.status(429).send({
+        error: 'Too many attempts',
+        message: 'Too many incorrect attempts. Please request a new code.',
+      });
+    }
+
+    if (pending.code !== code) {
+      pending.attempts += 1;
+      return reply.status(400).send({
+        error: 'Invalid code',
+        message: 'Incorrect confirmation code. Please check your email.',
+      });
+    }
+
+    // Success!
+    activeConfirmationCodes.delete(email);
+    const dbUser = await UserModel.findOne({ email });
+
+    return reply.send({
+      success: true,
+      verified: true,
+      message: 'Workspace activated successfully!',
+      sessionToken: `jwt_${Buffer.from(email).toString('base64')}_${Date.now()}`,
+      user: {
+        email,
+        role: dbUser?.roleKey || 'OWNER',
+        name: dbUser?.name || pending.fullName,
+        organizationId: dbUser?.organizationId || pending.organizationId,
+      },
+    });
+  });
+
+  // 3d. Resend 6-Digit Confirmation Code (Rate Limited)
+  app.post('/api/v1/auth/resend-confirmation-code', async (req: FastifyRequest, reply: FastifyReply) => {
+    const body = req.body as { email?: string };
+    const email = (body.email || '').trim().toLowerCase();
+
+    if (!email) {
+      return reply.status(400).send({
+        error: 'Validation error',
+        message: 'Email address is required.',
+      });
+    }
+
+    const rateCheck = confirmationLimiter.canResend(email);
+    if (!rateCheck.allowed) {
+      return reply.status(429).send({
+        error: 'Rate limit exceeded',
+        message: rateCheck.message,
+      });
+    }
+
+    const existing = activeConfirmationCodes.get(email);
+    const fullName = existing?.fullName || 'Travel Partner';
+    const agencyName = existing?.agencyName || 'Your Agency';
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+    activeConfirmationCodes.set(email, {
+      code,
+      email,
+      fullName,
+      agencyName,
+      organizationId: existing?.organizationId || 'org_default',
+      userId: existing?.userId || 'usr_default',
+      expiresAt: Date.now() + 15 * 60 * 1000,
+      attempts: 0,
+    });
+
+    try {
+      await TransactionalEmailService.send({
+        to: email,
+        subject: `Your New Confirmation Code: ${code} (${agencyName})`,
+        category: 'INVITE',
+        htmlContent: `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; color: #1e293b; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px;">
+            <div style="text-align: center; margin-bottom: 24px;">
+              <div style="display: inline-block; background-color: #0B1E3D; color: #C9A84C; font-weight: 900; font-size: 22px; width: 50px; height: 50px; line-height: 50px; border-radius: 12px; text-align: center;">
+                TR
+              </div>
+              <h1 style="color: #0B1E3D; font-size: 20px; font-weight: 700; margin: 16px 0 4px 0;">
+                Your New Confirmation Code
+              </h1>
+            </div>
+            <p style="font-size: 14px; line-height: 1.6;">Hello <strong>${fullName}</strong>,</p>
+            <p style="font-size: 14px; line-height: 1.6;">Here is your requested confirmation code:</p>
+            <div style="background-color: #f8fafc; border: 2px dashed #0B1E3D; border-radius: 12px; padding: 20px; text-align: center; margin: 24px 0;">
+              <div style="font-size: 40px; font-weight: 800; letter-spacing: 10px; color: #0B1E3D; font-family: monospace;">
+                ${code}
+              </div>
+              <div style="font-size: 12px; color: #64748b; margin-top: 8px;">Valid for 15 minutes.</div>
+            </div>
+          </div>
+        `,
+      });
+    } catch (mailErr: any) {
+      console.warn('Resend mail note:', mailErr.message);
+    }
+
+    return reply.send({
+      success: true,
+      message: 'New confirmation code sent to your email.',
+      remainingPerHour: rateCheck.remainingPerHour,
+    });
+  });
+
 
 
   // 3. Login Attempt Check (Constant-time, lockout countdown, suspended check)
