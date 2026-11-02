@@ -23,6 +23,7 @@ import { registerPerformanceRoutes } from '@/modules/platform/performanceRules.r
 import { registerSecurityAndPrivacyRoutes } from '@/modules/platform/securityAndPrivacyRules.routes';
 import { registerAccessibilityAndLanguageRoutes } from '@/modules/platform/accessibilityAndLanguageRules.routes';
 import { registerTestingQualityRoutes } from '@/modules/platform/testingQualityRules.routes';
+import { registerAuthPageRoutes } from '@/modules/auth/authPage.routes';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -70,6 +71,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await registerSecurityAndPrivacyRoutes(app);
   await registerAccessibilityAndLanguageRoutes(app);
   await registerTestingQualityRoutes(app);
+  await registerAuthPageRoutes(app);
 
   return app;
 }
