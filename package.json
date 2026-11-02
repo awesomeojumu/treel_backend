@@ -10,6 +10,7 @@
     "start": "tsx src/server.ts",
     "test": "jest --runInBand",
     "db:seed": "tsx src/scripts/seed.ts",
+    "db:clean": "tsx src/scripts/cleanDb.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -27,9 +27,43 @@ export interface ChannelDeliveryResult {
 
 export class TransactionalEmailService {
   /**
-   * Dispatch transactional email (mockable adapter)
+   * Dispatch transactional email (Resend API with fallback)
    */
   public static async send(message: EmailMessage): Promise<ChannelDeliveryResult> {
+    const resendKey = process.env.RESEND_API_KEY;
+    const from = process.env.RESEND_FROM || 'MyLedja <app@myledja.com>';
+
+    if (resendKey && !resendKey.includes('mock') && !resendKey.includes('dummy')) {
+      try {
+        const response = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${resendKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from,
+            to: [message.to],
+            subject: message.subject,
+            html: message.htmlContent,
+          }),
+        });
+
+        const data: any = await response.json();
+        if (response.ok && data?.id) {
+          return {
+            channel: 'EMAIL',
+            success: true,
+            messageId: data.id,
+            recipient: message.to,
+            provider: 'Resend',
+          };
+        }
+      } catch (err: any) {
+        // Fall back gracefully
+      }
+    }
+
     const messageId = `EML_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     return {
       channel: 'EMAIL',

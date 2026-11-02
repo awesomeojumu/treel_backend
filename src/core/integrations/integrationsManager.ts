@@ -35,7 +35,7 @@ export interface WorkspaceIntegrationsConfig {
 export interface WebhookLogEntry {
   id: string;
   timestamp: string;
-  provider: 'PAYSTACK' | 'WHATSAPP' | 'GDS' | 'SMS';
+  provider: 'PAYSTACK' | 'WHATSAPP' | 'GDS' | 'SMS' | 'EMAIL';
   event: string;
   reference: string;
   status: 'SUCCESS' | 'FAILED' | 'IGNORED';

@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { globalIntegrationsManager } from '@/core/integrations/integrationsManager';
 import { WhatsAppIntegration } from '@/core/integrations/whatsapp';
 import { GDSParser } from '@/core/integrations/gds';
+import { TransactionalEmailService } from '@/core/integrations/channels';
 
 export async function registerIntegrationsRoutes(app: FastifyInstance): Promise<void> {
   // Paystack Webhook Handler
@@ -154,6 +155,41 @@ export async function registerIntegrationsRoutes(app: FastifyInstance): Promise<
         reference: result.messageId,
         status: result.success ? 'SUCCESS' : 'FAILED',
         detail: `To: ${result.recipient}, Provider: ${result.provider}`,
+      });
+
+      return reply.send(result);
+    }
+  );
+
+  // Email Dispatch (Transactional / User Testing)
+  app.post(
+    '/api/v1/integrations/email/send',
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const body = request.body as {
+        to: string;
+        subject: string;
+        htmlContent?: string;
+        text?: string;
+        category?: 'INVITE' | 'RECEIPT' | 'BILLING' | 'ALERT';
+      };
+
+      if (!body.to || !body.subject) {
+        return reply.status(400).send({ error: 'Recipient "to" and "subject" are required' });
+      }
+
+      const result = await TransactionalEmailService.send({
+        to: body.to,
+        subject: body.subject,
+        htmlContent: body.htmlContent || `<p>${body.text || body.subject}</p>`,
+        category: body.category || 'ALERT',
+      });
+
+      globalIntegrationsManager.logWebhook({
+        provider: 'EMAIL',
+        event: 'email.dispatch',
+        reference: result.messageId,
+        status: result.success ? 'SUCCESS' : 'FAILED',
+        detail: `To: ${result.recipient}, Subject: ${body.subject} via ${result.provider}`,
       });
 
       return reply.send(result);
