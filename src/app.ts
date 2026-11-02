@@ -66,6 +66,13 @@ export async function buildApp(): Promise<FastifyInstance> {
     credentials: true,
   });
 
+  app.get('/', async () => ({
+    status: 'ok',
+    service: 'travelreel_backend',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+  }));
+
   app.get('/health', async () => ({
     status: 'ok',
     service: 'travelreel_backend',

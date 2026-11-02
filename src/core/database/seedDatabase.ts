@@ -94,7 +94,9 @@ export async function seedLiveDatabase(
   };
 }
 
-if (require.main === module) {
+import { fileURLToPath } from 'url';
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   seedLiveDatabase()
     .then((res) => {
       console.log('Live Database Seed Completed Successfully:', JSON.stringify(res, null, 2));

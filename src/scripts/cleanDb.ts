@@ -41,7 +41,9 @@ export async function cleanDatabase() {
   };
 }
 
-if (require.main === module) {
+import { fileURLToPath } from 'url';
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   cleanDatabase()
     .then((result) => {
       console.log('Database clean complete:', JSON.stringify(result, null, 2));
