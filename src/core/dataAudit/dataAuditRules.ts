@@ -390,6 +390,6 @@ export function validateUndoEligibility(
     };
   }
 
-  const hoursRemaining = Math.max(0, Math.floor(24 - elapsedHours));
+  const hoursRemaining = Math.max(0, Math.round(24 - elapsedHours));
   return { isEligible: true, hoursRemaining };
 }
