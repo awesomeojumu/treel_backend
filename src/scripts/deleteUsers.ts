@@ -11,7 +11,8 @@ try {
 
 async function run() {
   console.log('Connecting to MongoDB Atlas to delete all users...');
-  const uri = process.env.MONGODB_URI || process.env.DATABASE_URL || 'mongodb+srv://treelApp:gViIDKL8WRLnxmRr@planexi.b36hqe0.mongodb.net/Treel?retryWrites=true&w=majority';
+  const uri = process.env.MONGODB_URI || process.env.DATABASE_URL;
+  if (!uri) throw new Error('MONGODB_URI environment variable is required');
   await mongoose.connect(uri, { serverSelectionTimeoutMS: 10000 });
 
   const result = await UserModel.deleteMany({});
