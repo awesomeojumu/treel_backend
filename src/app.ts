@@ -25,6 +25,7 @@ import { registerAccessibilityAndLanguageRoutes } from '@/modules/platform/acces
 import { registerTestingQualityRoutes } from '@/modules/platform/testingQualityRules.routes';
 import { registerAuthPageRoutes } from '@/modules/auth/authPage.routes';
 import { registerSetupPageRoutes } from '@/modules/setup/setupPage.routes';
+import { registerAccountPageRoutes } from '@/modules/account/accountPage.routes';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -74,6 +75,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await registerTestingQualityRoutes(app);
   await registerAuthPageRoutes(app);
   await registerSetupPageRoutes(app);
+  await registerAccountPageRoutes(app);
 
   return app;
 }
