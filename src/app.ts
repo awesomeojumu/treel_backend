@@ -43,6 +43,7 @@ import { registerTasksQueriesPageRoutes } from '@/modules/tasksQueries/tasksQuer
 import { registerPerformancePageRoutes } from '@/modules/performance/performancePage.routes';
 import { registerGroupTravelPageRoutes } from '@/modules/groupTravel/groupTravelPage.routes';
 import { registerEventsPageRoutes } from '@/modules/events/eventsPage.routes';
+import { registerDocumentsPageRoutes } from '@/modules/documents/documentsPage.routes';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -110,6 +111,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await registerPerformancePageRoutes(app);
   await registerGroupTravelPageRoutes(app);
   await registerEventsPageRoutes(app);
+  await registerDocumentsPageRoutes(app);
 
   return app;
 }
