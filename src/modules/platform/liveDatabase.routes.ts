@@ -10,13 +10,56 @@ import {
 } from '@/models';
 import { seedLiveDatabase } from '@/core/database/seedDatabase';
 
-export async function registerLiveDatabaseRoutes(app: FastifyInstance): Promise<void> {
-  const organizationId = 'org_skyline_lagos';
+/**
+ * Dynamically resolves the active tenant (organizationId, user, org) based on:
+ * 1. x-organization-id header or query param ?orgId=
+ * 2. x-user-email header or query param ?email=
+ * 3. Latest registered user in MongoDB Atlas
+ * 4. Fallback baseline 'org_skyline_lagos'
+ */
+async function resolveOrganization(req: FastifyRequest): Promise<{
+  organizationId: string;
+  user?: any;
+  org?: any;
+}> {
+  const query = (req.query || {}) as { orgId?: string; email?: string };
+  const headers = req.headers;
+  const orgHeader = (headers['x-organization-id'] || query.orgId) as string | undefined;
+  const emailHeader = (headers['x-user-email'] || query.email) as string | undefined;
 
+  // 1. By Email
+  if (emailHeader) {
+    const user = await UserModel.findOne({ email: emailHeader.trim().toLowerCase() }).lean();
+    if (user && user.organizationId) {
+      const org = await OrganizationModel.findOne({ organizationId: user.organizationId }).lean();
+      return { organizationId: user.organizationId, user, org };
+    }
+  }
+
+  // 2. By Organization ID
+  if (orgHeader && orgHeader !== 'undefined' && orgHeader !== 'null') {
+    const org = await OrganizationModel.findOne({ organizationId: orgHeader }).lean();
+    const user = await UserModel.findOne({ organizationId: orgHeader, roleKey: 'OWNER' }).lean();
+    return { organizationId: orgHeader, user, org };
+  }
+
+  // 3. By latest active user in MongoDB Atlas
+  const latestUser = await UserModel.findOne({}).sort({ _id: -1 }).lean();
+  if (latestUser && latestUser.organizationId) {
+    const org = await OrganizationModel.findOne({ organizationId: latestUser.organizationId }).lean();
+    return { organizationId: latestUser.organizationId, user: latestUser, org };
+  }
+
+  // 4. Default fallback
+  const fallbackOrg = await OrganizationModel.findOne({ organizationId: 'org_skyline_lagos' }).lean();
+  return { organizationId: 'org_skyline_lagos', org: fallbackOrg };
+}
+
+export async function registerLiveDatabaseRoutes(app: FastifyInstance): Promise<void> {
   // 1. Get Workspace Full Live Snapshot from MongoDB Atlas
-  app.get('/api/v1/live/workspace', async (_req: FastifyRequest, reply: FastifyReply) => {
+  app.get('/api/v1/live/workspace', async (req: FastifyRequest, reply: FastifyReply) => {
     try {
-      const org = await OrganizationModel.findOne({ organizationId }).lean();
+      const { organizationId, user, org } = await resolveOrganization(req);
       const staffMembers = await UserModel.find({ organizationId }).select('-passwordHash').lean();
       const clients = await ClientModel.find({ organizationId }).lean();
       const leads = await LeadModel.find({ organizationId }).lean();
@@ -28,12 +71,12 @@ export async function registerLiveDatabaseRoutes(app: FastifyInstance): Promise<
         database: 'Treel',
         agency: org || {
           organizationId,
-          name: 'Skyline Travels and Tours Ltd',
-          rcNumber: 'RC 1234567',
-          branch: 'Ikeja, Lagos',
+          name: user?.name ? `${user.name}'s Agency` : 'Agency Workspace',
+          rcNumber: 'RC-PENDING',
+          branch: 'Headquarters, Nigeria',
         },
         staffCount: staffMembers.length,
-        owner: staffMembers.find((s) => s.roleKey === 'OWNER'),
+        owner: staffMembers.find((s) => s.roleKey === 'OWNER') || user,
         staffMembers,
         clients,
         leads,
@@ -48,9 +91,10 @@ export async function registerLiveDatabaseRoutes(app: FastifyInstance): Promise<
     }
   });
 
-  // 2. Get 1 Owner and 2 Staff Members
-  app.get('/api/v1/live/staff', async (_req: FastifyRequest, reply: FastifyReply) => {
+  // 2. Get Staff Members for Active Tenant
+  app.get('/api/v1/live/staff', async (req: FastifyRequest, reply: FastifyReply) => {
     try {
+      const { organizationId } = await resolveOrganization(req);
       const users = await UserModel.find({ organizationId }).select('-passwordHash').lean();
       return reply.send({
         total: users.length,
@@ -80,9 +124,12 @@ export async function registerLiveDatabaseRoutes(app: FastifyInstance): Promise<
         return reply.status(401).send({ error: 'Invalid email or password.' });
       }
 
+      const org = await OrganizationModel.findOne({ organizationId: user.organizationId }).lean();
+
       const userSafe = {
         userId: user.userId,
         organizationId: user.organizationId,
+        agencyName: org?.name || 'My Agency',
         name: user.name,
         email: user.email,
         initials: user.initials,
@@ -115,8 +162,9 @@ export async function registerLiveDatabaseRoutes(app: FastifyInstance): Promise<
   });
 
   // 5. Live Clients CRUD
-  app.get('/api/v1/live/clients', async (_req: FastifyRequest, reply: FastifyReply) => {
+  app.get('/api/v1/live/clients', async (req: FastifyRequest, reply: FastifyReply) => {
     try {
+      const { organizationId } = await resolveOrganization(req);
       const clients = await ClientModel.find({ organizationId }).lean();
       return reply.send({ total: clients.length, clients });
     } catch (err: any) {
@@ -127,6 +175,7 @@ export async function registerLiveDatabaseRoutes(app: FastifyInstance): Promise<
   app.post('/api/v1/live/clients', async (req: FastifyRequest, reply: FastifyReply) => {
     const body = req.body as any;
     try {
+      const { organizationId, user } = await resolveOrganization(req);
       const clientId = `CL-${Date.now().toString().slice(-4)}`;
       const client = await ClientModel.create({
         clientId,
@@ -135,8 +184,8 @@ export async function registerLiveDatabaseRoutes(app: FastifyInstance): Promise<
         phone: body.phone,
         email: body.email || '',
         tag: body.tag || 'Individual',
-        ownerName: body.ownerName || 'Adaeze Okafor',
-        ownerUserId: body.ownerUserId || 'usr_adaeze',
+        ownerName: body.ownerName || user?.name || 'Owner',
+        ownerUserId: body.ownerUserId || user?.userId || 'usr_owner',
         passportMasked: body.passportMasked || 'A00••••••',
         passportExpiry: body.passportExpiry || '2030-01-01',
       });
@@ -147,8 +196,9 @@ export async function registerLiveDatabaseRoutes(app: FastifyInstance): Promise<
   });
 
   // 6. Live Bookings CRUD
-  app.get('/api/v1/live/bookings', async (_req: FastifyRequest, reply: FastifyReply) => {
+  app.get('/api/v1/live/bookings', async (req: FastifyRequest, reply: FastifyReply) => {
     try {
+      const { organizationId } = await resolveOrganization(req);
       const bookings = await BookingModel.find({ organizationId }).lean();
       return reply.send({ total: bookings.length, bookings });
     } catch (err: any) {
@@ -159,6 +209,7 @@ export async function registerLiveDatabaseRoutes(app: FastifyInstance): Promise<
   app.post('/api/v1/live/bookings', async (req: FastifyRequest, reply: FastifyReply) => {
     const body = req.body as any;
     try {
+      const { organizationId, user } = await resolveOrganization(req);
       const bookingId = `BK-2026-${Math.floor(100 + Math.random() * 900)}`;
       const booking = await BookingModel.create({
         bookingId,
@@ -168,8 +219,8 @@ export async function registerLiveDatabaseRoutes(app: FastifyInstance): Promise<
         clientName: body.clientName,
         clientPhone: body.clientPhone,
         type: body.type || 'Flight',
-        soldBy: body.soldBy || 'Bisi Adeyemi',
-        soldByUserId: body.soldByUserId || 'usr_bisi',
+        soldBy: body.soldBy || user?.name || 'Owner',
+        soldByUserId: body.soldByUserId || user?.userId || 'usr_owner',
         status: body.status || 'Part-paid',
         items: body.items || [],
         totalKobo: body.totalKobo || 0,
@@ -185,8 +236,9 @@ export async function registerLiveDatabaseRoutes(app: FastifyInstance): Promise<
   });
 
   // 7. Live Leads CRUD
-  app.get('/api/v1/live/leads', async (_req: FastifyRequest, reply: FastifyReply) => {
+  app.get('/api/v1/live/leads', async (req: FastifyRequest, reply: FastifyReply) => {
     try {
+      const { organizationId } = await resolveOrganization(req);
       const leads = await LeadModel.find({ organizationId }).lean();
       return reply.send({ total: leads.length, leads });
     } catch (err: any) {
@@ -197,6 +249,7 @@ export async function registerLiveDatabaseRoutes(app: FastifyInstance): Promise<
   app.post('/api/v1/live/leads', async (req: FastifyRequest, reply: FastifyReply) => {
     const body = req.body as any;
     try {
+      const { organizationId, user } = await resolveOrganization(req);
       const leadId = `LD-2026-${Math.floor(100 + Math.random() * 900)}`;
       const lead = await LeadModel.create({
         leadId,
@@ -207,8 +260,8 @@ export async function registerLiveDatabaseRoutes(app: FastifyInstance): Promise<
         requestSummary: body.requestSummary,
         source: body.source || 'WhatsApp',
         stage: body.stage || 'New',
-        ownerUserId: body.ownerUserId || 'usr_bisi',
-        ownerName: body.ownerName || 'Bisi Adeyemi',
+        ownerUserId: body.ownerUserId || user?.userId || 'usr_owner',
+        ownerName: body.ownerName || user?.name || 'Owner',
         valueKobo: body.valueKobo || 0,
         followUpLabel: body.followUpLabel || 'Follow up tomorrow',
         isOverdue: false,
@@ -221,8 +274,9 @@ export async function registerLiveDatabaseRoutes(app: FastifyInstance): Promise<
   });
 
   // 8. Live Payments CRUD
-  app.get('/api/v1/live/payments', async (_req: FastifyRequest, reply: FastifyReply) => {
+  app.get('/api/v1/live/payments', async (req: FastifyRequest, reply: FastifyReply) => {
     try {
+      const { organizationId } = await resolveOrganization(req);
       const payments = await PaymentModel.find({ organizationId }).lean();
       return reply.send({ total: payments.length, payments });
     } catch (err: any) {
@@ -233,6 +287,7 @@ export async function registerLiveDatabaseRoutes(app: FastifyInstance): Promise<
   app.post('/api/v1/live/payments', async (req: FastifyRequest, reply: FastifyReply) => {
     const body = req.body as any;
     try {
+      const { organizationId, user } = await resolveOrganization(req);
       const paymentId = `PAY-2026-${Math.floor(100 + Math.random() * 900)}`;
       const payment = await PaymentModel.create({
         paymentId,
@@ -243,8 +298,8 @@ export async function registerLiveDatabaseRoutes(app: FastifyInstance): Promise<
         channel: body.channel || 'Direct Bank Transfer',
         reference: body.reference,
         receivedAt: new Date().toISOString(),
-        recordedBy: body.recordedBy || 'Bisi Adeyemi',
-        recordedByUserId: body.recordedByUserId || 'usr_bisi',
+        recordedBy: body.recordedBy || user?.name || 'Owner',
+        recordedByUserId: body.recordedByUserId || user?.userId || 'usr_owner',
         proofFileName: body.proofFileName,
         status: 'Confirmed',
       });
