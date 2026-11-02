@@ -38,6 +38,7 @@ import { registerBookingsPageRoutes } from '@/modules/bookings/bookingsPage.rout
 import { registerFinancePageRoutes } from '@/modules/finance/financePage.routes';
 import { registerApprovalsPageRoutes } from '@/modules/approvals/approvalsPage.routes';
 import { registerSuppliersPageRoutes } from '@/modules/suppliers/suppliersPage.routes';
+import { registerTicketsVisasPageRoutes } from '@/modules/ticketsVisas/ticketsVisasPage.routes';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -100,6 +101,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await registerFinancePageRoutes(app);
   await registerApprovalsPageRoutes(app);
   await registerSuppliersPageRoutes(app);
+  await registerTicketsVisasPageRoutes(app);
 
   return app;
 }
