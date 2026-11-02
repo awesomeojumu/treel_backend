@@ -40,6 +40,7 @@ import { registerApprovalsPageRoutes } from '@/modules/approvals/approvalsPage.r
 import { registerSuppliersPageRoutes } from '@/modules/suppliers/suppliersPage.routes';
 import { registerTicketsVisasPageRoutes } from '@/modules/ticketsVisas/ticketsVisasPage.routes';
 import { registerTasksQueriesPageRoutes } from '@/modules/tasksQueries/tasksQueriesPage.routes';
+import { registerPerformancePageRoutes } from '@/modules/performance/performancePage.routes';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -104,6 +105,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await registerSuppliersPageRoutes(app);
   await registerTicketsVisasPageRoutes(app);
   await registerTasksQueriesPageRoutes(app);
+  await registerPerformancePageRoutes(app);
 
   return app;
 }
