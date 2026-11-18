@@ -412,7 +412,12 @@ export async function registerAuthPageRoutes(app: FastifyInstance) {
     try {
       const dbUser = await UserModel.findOne({ email });
       if (dbUser && body.password) {
-        const passwordMatches = await argon2.verify(dbUser.passwordHash, body.password);
+        const rawPass = body.password;
+        const trimmedPass = body.password.trim();
+        let passwordMatches = await argon2.verify(dbUser.passwordHash, rawPass);
+        if (!passwordMatches && trimmedPass !== rawPass) {
+          passwordMatches = await argon2.verify(dbUser.passwordHash, trimmedPass);
+        }
         if (passwordMatches) {
           loginEngine.clearLockout(email);
           return {
@@ -432,8 +437,8 @@ export async function registerAuthPageRoutes(app: FastifyInstance) {
           };
         }
       }
-    } catch {
-      // Resilient fallback
+    } catch (err: any) {
+      console.warn('Login verification exception:', err.message);
     }
 
     // Failed credentials: record attempt and return constant-time generic error
