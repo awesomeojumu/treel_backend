@@ -56,7 +56,7 @@ export async function registerSystemStatesRoutes(app: FastifyInstance): Promise<
       statusCode: 403,
       error: 'Forbidden',
       message: 'You do not have access to view agency financial bank balances.',
-      whoToAsk: 'Please ask Adaeze Okafor (Owner) or Tunde Bakare (Operations Manager) to assign the Finance Manager role.',
+      whoToAsk: 'Please ask your workspace Owner or Administrator to assign the Finance Manager role.',
       requiredPermission: 'finance.view_bank_balances',
     });
   });
