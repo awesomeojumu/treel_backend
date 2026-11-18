@@ -6,6 +6,28 @@ import {
   validateHourlyLog,
 } from '@/core/myDay/myDayPageRules';
 
+interface ServerShiftRecord {
+  userId: string;
+  date: string;
+  clockedIn: boolean;
+  clockInTime: string | null;
+  clockInTimestamp: number | null;
+  clockOutTime?: string | null;
+  clockOutTimestamp?: number | null;
+  isOnBreak: boolean;
+  breakStartTimestamp: number | null;
+  totalBreakSeconds: number;
+  outsideRadiusReason?: string;
+  deviceFingerprint?: string;
+}
+
+// In-memory server-backed shift store across all devices (laptop, phone, tablet)
+const serverShiftsStore = new Map<string, ServerShiftRecord>();
+
+function getShiftKey(userId: string, dateStr: string) {
+  return `${userId}_${dateStr}`;
+}
+
 export async function registerMyDayPageRoutes(app: FastifyInstance) {
   // 1. List all 18 Page 4 My Day Rules
   app.get('/api/v1/my-day/rules', async () => {
@@ -17,9 +39,40 @@ export async function registerMyDayPageRoutes(app: FastifyInstance) {
     };
   });
 
+  // 1b. Current Shift Status (Cross-Device Sync: laptop, phone, desktop)
+  app.get<{
+    Querystring: {
+      userId?: string;
+      date?: string;
+    };
+  }>('/api/v1/my-day/current-shift', async (req) => {
+    const userId = req.query.userId || 'usr_owner';
+    const dateStr = req.query.date || new Date().toISOString().slice(0, 10);
+    const key = getShiftKey(userId, dateStr);
+
+    const shift = serverShiftsStore.get(key) || {
+      userId,
+      date: dateStr,
+      clockedIn: false,
+      clockInTime: null,
+      clockInTimestamp: null,
+      clockOutTime: null,
+      clockOutTimestamp: null,
+      isOnBreak: false,
+      breakStartTimestamp: null,
+      totalBreakSeconds: 0,
+    };
+
+    return {
+      success: true,
+      shift,
+    };
+  });
+
   // 2. Authoritative Clock-in endpoint
   app.post<{
     Body: {
+      userId?: string;
       isAlreadyClockedIn?: boolean;
       deviceTimeIso?: string;
       locationPermissionGranted?: boolean;
@@ -28,11 +81,20 @@ export async function registerMyDayPageRoutes(app: FastifyInstance) {
       outsideRadiusReason?: string;
       isLeaveOrHoliday?: boolean;
       leaveHolidayReason?: string;
+      deviceFingerprint?: string;
     };
   }>('/api/v1/my-day/clock-in', async (req, reply) => {
     const body = req.body || {};
+    const userId = body.userId || 'usr_owner';
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const key = getShiftKey(userId, dateStr);
+
+    // If already clocked in on server, check state
+    const existing = serverShiftsStore.get(key);
+    const isAlreadyClockedIn = existing?.clockedIn || !!body.isAlreadyClockedIn;
+
     const result = validateClockIn({
-      isAlreadyClockedIn: !!body.isAlreadyClockedIn,
+      isAlreadyClockedIn,
       deviceTimeIso: body.deviceTimeIso || new Date().toISOString(),
       locationPermissionGranted: !!body.locationPermissionGranted,
       deviceCoordinates: body.deviceCoordinates,
@@ -45,28 +107,140 @@ export async function registerMyDayPageRoutes(app: FastifyInstance) {
     if (!result.success) {
       return reply.status(400).send(result);
     }
-    return result;
+
+    const timeStr = new Date().toLocaleTimeString('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Africa/Lagos',
+    });
+
+    const shift: ServerShiftRecord = {
+      userId,
+      date: dateStr,
+      clockedIn: true,
+      clockInTime: timeStr,
+      clockInTimestamp: Date.now(),
+      clockOutTime: null,
+      clockOutTimestamp: null,
+      isOnBreak: false,
+      breakStartTimestamp: null,
+      totalBreakSeconds: 0,
+      outsideRadiusReason: body.outsideRadiusReason,
+      deviceFingerprint: body.deviceFingerprint,
+    };
+
+    serverShiftsStore.set(key, shift);
+
+    return {
+      ...result,
+      shift,
+    };
   });
 
   // 3. Authoritative Clock-out endpoint
   app.post<{
     Body: {
+      userId?: string;
       isClockedIn?: boolean;
       clockInTimeIso?: string;
       totalBreakMinutes?: number;
     };
   }>('/api/v1/my-day/clock-out', async (req, reply) => {
     const body = req.body || {};
+    const userId = body.userId || 'usr_owner';
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const key = getShiftKey(userId, dateStr);
+    const existing = serverShiftsStore.get(key);
+
+    const isClockedIn = existing ? existing.clockedIn : (body.isClockedIn ?? true);
+
     const result = validateClockOut({
-      isClockedIn: !!body.isClockedIn,
-      clockInTimeIso: body.clockInTimeIso || new Date().toISOString(),
-      totalBreakMinutes: body.totalBreakMinutes || 0,
+      isClockedIn,
+      clockInTimeIso: body.clockInTimeIso || (existing?.clockInTimestamp ? new Date(existing.clockInTimestamp).toISOString() : new Date().toISOString()),
+      totalBreakMinutes: body.totalBreakMinutes || Math.round((existing?.totalBreakSeconds || 0) / 60),
     });
 
     if (!result.success) {
       return reply.status(400).send(result);
     }
-    return result;
+
+    const timeStr = new Date().toLocaleTimeString('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Africa/Lagos',
+    });
+
+    const shift: ServerShiftRecord = existing
+      ? {
+          ...existing,
+          clockedIn: false,
+          clockOutTime: timeStr,
+          clockOutTimestamp: Date.now(),
+          isOnBreak: false,
+          breakStartTimestamp: null,
+        }
+      : {
+          userId,
+          date: dateStr,
+          clockedIn: false,
+          clockInTime: null,
+          clockInTimestamp: null,
+          clockOutTime: timeStr,
+          clockOutTimestamp: Date.now(),
+          isOnBreak: false,
+          breakStartTimestamp: null,
+          totalBreakSeconds: 0,
+        };
+
+    serverShiftsStore.set(key, shift);
+
+    return {
+      ...result,
+      shift,
+    };
+  });
+
+  // 3b. Break Toggle endpoint (Cross-Device Sync)
+  app.post<{
+    Body: {
+      userId?: string;
+    };
+  }>('/api/v1/my-day/toggle-break', async (req) => {
+    const body = req.body || {};
+    const userId = body.userId || 'usr_owner';
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const key = getShiftKey(userId, dateStr);
+
+    let shift = serverShiftsStore.get(key);
+    if (!shift) {
+      shift = {
+        userId,
+        date: dateStr,
+        clockedIn: true,
+        clockInTime: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Lagos' }),
+        clockInTimestamp: Date.now(),
+        isOnBreak: true,
+        breakStartTimestamp: Date.now(),
+        totalBreakSeconds: 0,
+      };
+    } else {
+      if (!shift.isOnBreak) {
+        shift.isOnBreak = true;
+        shift.breakStartTimestamp = Date.now();
+      } else {
+        const breakDuration = shift.breakStartTimestamp ? Math.floor((Date.now() - shift.breakStartTimestamp) / 1000) : 0;
+        shift.isOnBreak = false;
+        shift.breakStartTimestamp = null;
+        shift.totalBreakSeconds += Math.max(0, breakDuration);
+      }
+    }
+
+    serverShiftsStore.set(key, shift);
+
+    return {
+      success: true,
+      shift,
+    };
   });
 
   // 4. Validate or Save Hourly Log
