@@ -48,7 +48,19 @@ export function getPhoneTrunk(phone: string): string {
 }
 
 export function normalizeNigeriaPhone(raw: string): { valid: boolean; formatted: string; trunk: string } {
-  const digits = raw.replace(/\D/g, '');
+  if (!raw) return { valid: false, formatted: '', trunk: '' };
+  const trimmed = raw.trim();
+  const normalized = trimmed.startsWith('00') ? '+' + trimmed.slice(2) : trimmed;
+
+  // International format with explicit country code
+  if (normalized.startsWith('+')) {
+    const digits = normalized.slice(1).replace(/\D/g, '');
+    if (digits.length >= 7 && digits.length <= 15) {
+      return { valid: true, formatted: `+${digits}`, trunk: digits.slice(-10) };
+    }
+  }
+
+  const digits = normalized.replace(/\D/g, '');
   let trunk = '';
   if (digits.startsWith('234') && digits.length === 13) {
     trunk = digits.substring(3);
@@ -61,6 +73,11 @@ export function normalizeNigeriaPhone(raw: string): { valid: boolean; formatted:
   if (trunk && trunk.length === 10 && /^[789][01]\d{8}$/.test(trunk)) {
     const formatted = `+234 ${trunk.substring(0, 3)} ${trunk.substring(3, 6)} ${trunk.substring(6)}`;
     return { valid: true, formatted, trunk };
+  }
+
+  // Any other international number (7-15 digits)
+  if (digits.length >= 7 && digits.length <= 15) {
+    return { valid: true, formatted: `+${digits}`, trunk: digits.slice(-10) };
   }
 
   return { valid: false, formatted: raw, trunk: digits };
