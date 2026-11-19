@@ -117,14 +117,44 @@ export interface ILead extends Document {
   clientId: string;
   clientName: string;
   phone: string;
+  email?: string;
   requestSummary: string;
+  serviceType?: string;
+  destination?: string;
+  travelDates?: {
+    type: 'exact' | 'rough';
+    dateSummary: string;
+    startDate?: string;
+    endDate?: string;
+  };
+  travellersCount?: number;
   source: string;
+  sourceNote?: string;
   stage: string;
   ownerName: string;
   ownerUserId: string;
+  branchId?: string;
+  branchName?: string;
   valueKobo: number;
   followUpLabel: string;
+  nextFollowUpDate?: string;
   convertedBookingId?: string;
+  linkedClientId?: string;
+  linkedQuoteId?: string;
+  linkedBookingId?: string;
+  lostReason?: string;
+  reopenReason?: string;
+  notes?: string[];
+  activityLogs?: Array<{
+    id: string;
+    leadId: string;
+    type: string;
+    description: string;
+    staffId: string;
+    staffName: string;
+    timestamp: string;
+  }>;
+  lastActivityAt?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -133,17 +163,40 @@ const LeadSchema = new Schema<ILead>(
   {
     leadId: { type: String, required: true, unique: true, index: true },
     organizationId: { type: String, required: true, index: true },
-    clientId: { type: String, required: true },
+    clientId: { type: String, default: '' },
     clientName: { type: String, required: true },
-    phone: { type: String, required: true },
-    requestSummary: { type: String, required: true },
-    source: { type: String, default: 'WhatsApp' },
-    stage: { type: String, default: 'New' },
+    phone: { type: String, required: true, index: true },
+    email: { type: String },
+    requestSummary: { type: String, default: '' },
+    serviceType: { type: String, default: 'flight' },
+    destination: { type: String, default: 'Unspecified destination' },
+    travelDates: {
+      type: Schema.Types.Mixed,
+      default: { type: 'rough', dateSummary: 'Dates TBD' },
+    },
+    travellersCount: { type: Number, default: 1 },
+    source: { type: String, default: 'WhatsApp Inbound' },
+    sourceNote: { type: String },
+    stage: { type: String, default: 'new', index: true },
     ownerName: { type: String, required: true },
-    ownerUserId: { type: String, required: true },
+    ownerUserId: { type: String, required: true, index: true },
+    branchId: { type: String, default: 'br-hq' },
+    branchName: { type: String, default: 'Head Office' },
     valueKobo: { type: Number, required: true, default: 0 },
     followUpLabel: { type: String, default: 'Today' },
+    nextFollowUpDate: { type: String },
     convertedBookingId: { type: String },
+    linkedClientId: { type: String },
+    linkedQuoteId: { type: String },
+    linkedBookingId: { type: String },
+    lostReason: { type: String },
+    reopenReason: { type: String },
+    notes: { type: [String], default: [] },
+    activityLogs: {
+      type: [Schema.Types.Mixed],
+      default: [],
+    },
+    lastActivityAt: { type: String },
   },
   { timestamps: true, collection: 'leads' }
 );
