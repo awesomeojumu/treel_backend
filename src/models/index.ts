@@ -250,6 +250,35 @@ const PaymentSchema = new Schema<IPayment>(
   { timestamps: true, collection: 'payments' }
 );
 
+export interface IUserSession extends Document {
+  sessionId: string;
+  userId: string;
+  organizationId: string;
+  device: string;
+  iconType: 'laptop' | 'smartphone';
+  ip: string;
+  userAgent: string;
+  lastActiveAt: Date;
+  revoked: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const UserSessionSchema = new Schema<IUserSession>(
+  {
+    sessionId: { type: String, required: true, unique: true, index: true },
+    userId: { type: String, required: true, index: true },
+    organizationId: { type: String, default: '' },
+    device: { type: String, required: true },
+    iconType: { type: String, enum: ['laptop', 'smartphone'], default: 'laptop' },
+    ip: { type: String, required: true },
+    userAgent: { type: String, default: '' },
+    lastActiveAt: { type: Date, default: Date.now },
+    revoked: { type: Boolean, default: false, index: true },
+  },
+  { timestamps: true, collection: 'user_sessions' }
+);
+
 // Register and export models (avoid re-compilation in hot reloading)
 export const OrganizationModel: Model<IOrganization> =
   mongoose.models.Organization || mongoose.model<IOrganization>('Organization', OrganizationSchema);
@@ -268,3 +297,6 @@ export const BookingModel: Model<IBooking> =
 
 export const PaymentModel: Model<IPayment> =
   mongoose.models.Payment || mongoose.model<IPayment>('Payment', PaymentSchema);
+
+export const UserSessionModel: Model<IUserSession> =
+  mongoose.models.UserSession || mongoose.model<IUserSession>('UserSession', UserSessionSchema);
